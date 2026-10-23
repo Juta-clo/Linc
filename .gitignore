@@ -1,0 +1,4 @@
+test_all
+compile_commands.json
+build/
+.xmake/
