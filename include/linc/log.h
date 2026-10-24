@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 #include "linc.h"
-#include "common.h"
 
 #define LINC_LOG_INFO(...) \
     linc_log_write(linc_log_default, LINC_LOG_INFO, LINC_SITE, __VA_ARGS__)

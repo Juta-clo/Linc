@@ -15,8 +15,6 @@
 #include <stdint.h>
 #include <signal.h>
 
-#include "common.h"
-
 /* 34 TOTAL */
 #define xopen(...)            linc_xsys_open(LINC_SITE, __VA_ARGS__)
 #define xdup2(...)            linc_xsys_dup2(LINC_SITE, __VA_ARGS__)
@@ -78,7 +76,7 @@ int linc_xsys_timerfd_settime(linc_site site, int fd, int flags,
         const struct itimerspec *new_value, struct itimerspec *old_value);
 
 void *linc_xsys_malloc(linc_site site, size_t size);
-void *linc_xsys_calloc(linc_site site, size_t nmemb, size_t size);
+void *linc_xsys_calloc(linc_site site, size_t n, size_t size);
 void *linc_xsys_realloc(linc_site site, void *ptr, size_t size);
 char *linc_xsys_strdup(linc_site site, const char *s);
 char *linc_xsys_strndup(linc_site site, const char *s, size_t n);

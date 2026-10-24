@@ -1,4 +1,5 @@
 #include <linc/args.h>
+#include <linc/xsys.h>
 
 #include <stddef.h>
 #include <assert.h>
@@ -9,8 +10,6 @@
 #include <getopt.h>
 #include <string.h>
 #include <stdbool.h>
-
-#include "internal.h"
 
 __attribute__ ((format(printf, 1, 2)))
 static void linc_args_report_err(const char *fmt, ...) {
@@ -101,8 +100,8 @@ inline int linc_args_parse(int argc, char * const *argv, linc_args *opts,
 
     int long_optind;
 
-    struct option *long_opts = LINC_CALLOC(opt_n + 1, sizeof(*long_opts));
-    char *short_opts = LINC_CALLOC(sizeof(char), opt_n * 3 + 1);
+    struct option *long_opts = xcalloc((opt_n + 1), sizeof(*long_opts));
+    char *short_opts = xcalloc(1, opt_n * 3 + 1);
 
     for (size_t i = 0, y = 0; i < opt_n; ++i, ++y) {
         long_opts[i].name    = opts[i].long_name;
@@ -165,15 +164,15 @@ inline int linc_args_parse(int argc, char * const *argv, linc_args *opts,
         }
     }
 
-    LINC_FREE(long_opts);
-    LINC_FREE(short_opts);
+    free(long_opts);
+    free(short_opts);
     opterr = saved_opterr;
 
     return 0;
 
 fail:
-    LINC_FREE(long_opts);
-    LINC_FREE(short_opts);
+    free(long_opts);
+    free(short_opts);
     opterr = saved_opterr;
 
     return -1;

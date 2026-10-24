@@ -4,6 +4,7 @@
 #include <errno.h> // IWYU pragma: export
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <sys/resource.h>
 
 #include "unity_fixture.h"
 
@@ -42,7 +43,7 @@ TEST_SETUP(xsys) {
     linc_fatal_set_target(
         test_target = (linc_fatal_target) {
             .handler = test_fatal,
-            .user = &wrapper
+            .ctx = &wrapper
         }
     );
 
@@ -69,6 +70,10 @@ TEST(xsys, process_aborts_with_default_handler) {
     case -1:
         TEST_FAIL_MESSAGE("fork() failed");
     case 0:
+        const struct rlimit no_core = {0};
+        if (setrlimit(RLIMIT_CORE, &no_core) == -1)
+            _exit(EXIT_FAILURE);
+
         if (!freopen("/dev/null", "w", stderr))
             _exit(EXIT_FAILURE);
 

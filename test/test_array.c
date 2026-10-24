@@ -1,6 +1,7 @@
 #include <linc/array.h>
 
 #include <assert.h>
+#include <string.h>
 
 #include "unity_fixture.h"
 
@@ -8,9 +9,32 @@ TEST_GROUP(array);
 
 /************ Shared utils ************/
 
-LINC_ARRAY_TYPE(int);
+LINC_ARRAY_TYPE(linc_array_int, int);
 
 static linc_array_int arr;
+static int exp_ctx;
+static int exp_size;
+static char buf[256];
+static linc_allo allo;
+
+void *test_alloc(size_t size, void *ctx) {
+    TEST_ASSERT_NOT_NULL(ctx);
+    TEST_ASSERT_EQUAL_PTR(&exp_ctx, ctx);
+    TEST_ASSERT_EQUAL_INT(exp_ctx, *(int *)ctx);
+    TEST_ASSERT_EQUAL_size_t(exp_size, size);
+
+    return buf;
+}
+
+void test_free(void *ptr, size_t size, void *ctx) {
+    TEST_ASSERT_NOT_NULL(ptr);
+    TEST_ASSERT_NOT_NULL(ctx);
+    TEST_ASSERT_EQUAL_PTR(&exp_ctx, ctx);
+    TEST_ASSERT_EQUAL_INT(exp_ctx, *(int *)ctx);
+    TEST_ASSERT_EQUAL_size_t(exp_size, size);
+
+    memset(buf, 0, 256);
+}
 
 static void validate_array(linc_array_int *arr, size_t size, size_t cap) {
     TEST_ASSERT_NOT_NULL(arr);
@@ -21,6 +45,14 @@ static void validate_array(linc_array_int *arr, size_t size, size_t cap) {
 /************ Fixture ************/
 
 TEST_SETUP(array) {
+    exp_ctx = 0;
+    exp_size = 0;
+    memset(buf, 0, 256);
+
+    allo.alloc = test_alloc;
+    allo.free = test_free;
+    allo.ctx = &exp_ctx;
+
     arr = (linc_array_int)LINC_ARRAY_INIT;
     validate_array(&arr, 0, 0);
 }
@@ -134,6 +166,22 @@ TEST(array, inserting_element) {
     TEST_ASSERT_EQUAL_INT(25, arr.data[0]);
 }
 
+TEST(array, using_a_custom_allocator) {
+    arr.allo = allo;
+    exp_ctx = 99;
+    exp_size = sizeof(int) * 2;
+
+    *linc_array_push(&arr) = 100;
+    TEST_ASSERT_EQUAL_PTR(arr.data, buf);
+    TEST_ASSERT_EQUAL_INT(*arr.data, 100);
+
+    arr.allo = allo;
+    exp_ctx = 49;
+    exp_size = 0;
+
+    linc_array_free(&arr);
+}
+
 /************ Test runner ************/
 
 TEST_GROUP_RUNNER(array) {
@@ -147,4 +195,5 @@ TEST_GROUP_RUNNER(array) {
     RUN_TEST_CASE(array, delete_last_element);
     RUN_TEST_CASE(array, delete_middle_element);
     RUN_TEST_CASE(array, inserting_element);
+    RUN_TEST_CASE(array, using_a_custom_allocator);
 }

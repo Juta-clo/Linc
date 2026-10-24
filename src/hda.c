@@ -1,4 +1,5 @@
 #include <linc/hda.h>
+#include <linc/xsys.h>
 
 #include <assert.h>
 #include <stddef.h>
@@ -9,13 +10,10 @@
 
 #include "internal.h"
 
-#define LINC_HDA_MAX(a, b) \
-    (((a) > (b)) ? a : b)
-
-#define LINC_HDA_BYTE_N (2 * sizeof(size_t))
+#define LINC_HEAD_N (2 * sizeof(size_t))
 
 #define LINC_HDA_START(arr) \
-    ((size_t *)((char *)(arr) - LINC_HDA_BYTE_N))
+    ((size_t *)((char *)(arr) - LINC_HEAD_N))
 
 #define LINC_HDA_SIZE(arr) \
     (LINC_HDA_START(arr)[0])
@@ -39,7 +37,7 @@ void linc_hda_free_imp(void *hda) {
     if (!hda)
         return;
 
-    LINC_FREE(LINC_HDA_START(hda));
+    free(LINC_HDA_START(hda));
 }
 
 void *linc_hda_reserve(void *hda, size_t el_sz, size_t min) {
@@ -48,10 +46,11 @@ void *linc_hda_reserve(void *hda, size_t el_sz, size_t min) {
     if (cap >= min)
         return hda;
 
-    cap = LINC_HDA_MAX(min, LINC_HDA_MAX(2, cap * 2));
-    void *tmp = LINC_REALLOC(linc_hda_start(hda), LINC_HDA_BYTE_N + (cap * el_sz));
-    hda = (char *)tmp + LINC_HDA_BYTE_N;
-    LINC_HDA_CAP(hda) = cap;
+    size_t new_cap = LINC_MAX(min, LINC_MAX((size_t)2, cap * 2));
+    void *p = xrealloc(linc_hda_start(hda), LINC_HEAD_N + (new_cap * el_sz));
+
+    hda = (char *)p + LINC_HEAD_N;
+    LINC_HDA_CAP(hda) = new_cap;
 
     return hda;
 }
@@ -74,10 +73,10 @@ void *linc_hda_grow(void *hda, size_t el_sz, size_t n) {
 }
 
 void *linc_hda_dup(const void *hda) {
-    void *out = LINC_ALLOC(LINC_HDA_BYTE_N + LINC_HDA_CAP(hda));
-    memcpy(out, LINC_HDA_START(hda), LINC_HDA_BYTE_N + LINC_HDA_CAP(hda));
+    void *out = xmalloc(LINC_HEAD_N + LINC_HDA_CAP(hda));
+    memcpy(out, LINC_HDA_START(hda), LINC_HEAD_N + LINC_HDA_CAP(hda));
 
-    return (char *)out + LINC_HDA_BYTE_N;
+    return (char *)out + LINC_HEAD_N;
 }
 
 void *linc_hda_insert_imp(void *hda, const void *els,
@@ -91,12 +90,12 @@ void *linc_hda_insert_imp(void *hda, const void *els,
         return hda;
 
     if (n > SIZE_MAX / el_sz)
-        LINC_FATAL("allocation overflow", LINC_SITE, LINC_FATAL_LIB);
+        linc_fatal("allocation overflow", LINC_SITE, LINC_FATAL_LIB);
 
     /* to guard against overlapping hda and el on realloc.
      * Can avoid the malloc on every insert by checking for
      * address overlap (uintptr_t) */
-    void *el_copy = LINC_ALLOC(el_sz * n);
+    void *el_copy = xmalloc(el_sz * n);
 
     memcpy(el_copy, els, el_sz * n);
 
@@ -107,7 +106,7 @@ void *linc_hda_insert_imp(void *hda, const void *els,
     memmove(&p[(idx + n) * el_sz], &p[idx * el_sz], (size - idx) * el_sz);
     memcpy(&p[idx * el_sz], el_copy, el_sz * n);
 
-    LINC_FREE(el_copy);
+    free(el_copy);
     return hda;
 }
 

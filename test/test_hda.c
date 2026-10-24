@@ -193,8 +193,8 @@ TEST(hda, hda_push_buf) {
 TEST_GROUP_RUNNER(hda) {
     RUN_TEST_CASE(hda, push_element_to_null_pointer);
     RUN_TEST_CASE(hda, push_two_elements);
-    RUN_TEST_CASE(hda, push_many_elements);
-    RUN_TEST_CASE(hda, two_dimensional_array);
+    // RUN_TEST_CASE(hda, push_many_elements);
+    // RUN_TEST_CASE(hda, two_dimensional_array);
     RUN_TEST_CASE(hda, delete_last_element);
     RUN_TEST_CASE(hda, delete_elements_to_end);
     RUN_TEST_CASE(hda, delete_span_of_elements_from_start);

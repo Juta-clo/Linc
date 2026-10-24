@@ -61,7 +61,7 @@ void linc_log_set_default(linc_log log) {
 }
 
 char *linc_log_level_str(linc_log_level level) {
-    assert(level < 0 || level >= LOG_TYPE_MAX);
+    assert(level >= 0 && level < LOG_TYPE_MAX);
     return level_strings[level];
 }
 
@@ -88,7 +88,7 @@ void linc_log_write(linc_log log, linc_log_level level, linc_site site,
 
     va_start(va, fmt);
      if (vasprintf(&p, fmt, va) < 0)
-         LINC_FATAL("vasprintf", LINC_SITE, LINC_FATAL_SYS);
+         linc_fatal("vasprintf", LINC_SITE, LINC_FATAL_SYS);
      va_end(va);
 
     linc_string msg = convert_special_chars(p);
@@ -96,7 +96,7 @@ void linc_log_write(linc_log log, linc_log_level level, linc_site site,
     ctx.msg = msg.cstr;
     log.sink(&ctx, log.user);
 
-    LINC_FREE(p);
+    free(p);
     linc_string_free(&msg);
 
     errno = saved_errno;

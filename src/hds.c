@@ -37,11 +37,11 @@ void *linc_hds_append_fmt_imp(void *hds, const char *fmt, ...) {
     va_end(va);
 
     if (n == -1)
-        LINC_FATAL("vasprintf: failed", LINC_SITE, LINC_FATAL_LIB);
+        linc_fatal("vasprintf: failed", LINC_SITE, LINC_FATAL_LIB);
 
     linc_hds_append_n(hds, s, n);
 
-    linc_free(s);
+    free(s);
 
     return hds;
 }

@@ -1,6 +1,8 @@
 #ifndef LINC_STRING_H
 #define LINC_STRING_H
 
+#include <linc.h>
+
 #include <stddef.h>
 
 #define LINC_STRING_INIT (linc_string){ .cstr = "" }
@@ -9,6 +11,7 @@ typedef struct {
     char *cstr;
     size_t len;
     size_t cap;
+    linc_allo allo;
 } linc_string;
 
 void linc_string_free(linc_string *str);

@@ -7,13 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <linc.h>
 #include "internal.h"
 
 void linc_string_free(linc_string *str) {
     assert(str);
 
     if (str->cap > 0)
-        LINC_FREE(str->cstr);
+        linc_free(str->cstr, 0, &str->allo);
 
     *str = LINC_STRING_INIT;
 }
@@ -27,8 +28,11 @@ void linc_string_reserve(linc_string *str, size_t min) {
     if (str->cap == 0)
         str->cstr = nullptr;
 
-    size_t new_cap = MAX(min, MAX(2, str->cap * 2));
-    str->cstr = LINC_REALLOC(str->cstr, new_cap);
+    size_t new_cap = LINC_MAX(min, LINC_MAX((size_t)2, str->cap * 2));
+
+    str->cstr = linc_realloc(
+        str->cstr, new_cap, str->cap, &str->allo, LINC_SITE
+    );
 
     if (str->cap == 0)
         str->cstr[0] = '\0';
@@ -63,19 +67,19 @@ void linc_string_append(linc_string *str, const char *src) {
     str->len += src_len;
 }
 
-void linc_string_appendf(linc_string *dst, const char *fmt, ...) {
-    assert(dst && fmt);
+void linc_string_appendf(linc_string *str, const char *fmt, ...) {
+    assert(str && fmt);
 
     va_list va;
     char *p;
 
     va_start(va, fmt);
     if (vasprintf(&p, fmt, va) < 0)
-        LINC_FATAL("vasprintf: failed", LINC_SITE, LINC_FATAL_LIB);
+        linc_fatal("vasprintf: failed", LINC_SITE, LINC_FATAL_LIB);
     va_end(va);
 
-    linc_string_append(dst, p);
-    LINC_FREE(p);
+    linc_string_append(str, p);
+    free(p);
 }
 
 void linc_string_set(linc_string *str, const char *src) {

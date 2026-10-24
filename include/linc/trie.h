@@ -1,6 +1,8 @@
 #ifndef LINC_TRIE_H
 #define LINC_TRIE_H
 
+#include <linc.h>
+
 #include <stddef.h>
 #include <assert.h>
 #include <stddef.h>
@@ -9,6 +11,8 @@
 
 #define linc_trie_put(tr, s) \
     trie_add(tr, s, NULL, 0)
+
+#define LINC_TRIE_N 256
 
 typedef enum {
     TRIE_MATCH,

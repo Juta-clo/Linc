@@ -1,8 +1,7 @@
 #include <linc/trie.h>
+#include <linc/xsys.h>
 
 #include <stddef.h>
-
-#include "internal.h"
 
 #define TRIE_CHILD_MAX 256
 
@@ -14,19 +13,21 @@ struct linc_trie {
 };
 
 linc_trie *linc_trie_create(void) {
-    linc_trie *tr = LINC_CALLOC(1, sizeof(linc_trie));
+    linc_trie *tr = xcalloc(1, sizeof(linc_trie));
+
     return tr;
 }
 
 void linc_trie_destroy(linc_trie *tr) {
-    for (size_t i = 0; i < TRIE_CHILD_MAX; ++i)
+    for (size_t i = 0; i < LINC_TRIE_N; ++i)
         if (tr->children[i])
             linc_trie_destroy(tr->children[i]);
 
     if (tr->data)
-        linc_free(tr->data);
+        free(tr->data);
 
-    linc_free(tr);
+    free(tr);
+    tr = nullptr;
 }
 
 void linc_trie_add(linc_trie *tr, const char *s, void *data, size_t sz) {
@@ -37,7 +38,7 @@ void linc_trie_add(linc_trie *tr, const char *s, void *data, size_t sz) {
         tr->term = true;
 
         if (sz > 0) {
-            tr->data = LINC_ALLOC(sz);
+            tr->data = xmalloc(sz);
             memcpy(tr->data, data, sz);
         }
 
