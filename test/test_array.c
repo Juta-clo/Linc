@@ -106,7 +106,7 @@ TEST(array, delete_only_element) {
     linc_array_push(&arr);
     validate_array(&arr, 1, 2);
 
-    linc_array_delete(&arr, 0);
+    linc_array_delete(&arr, 0, 1);
     validate_array(&arr, 0, 2);
 }
 
@@ -119,7 +119,7 @@ TEST(array, delete_first_element) {
     validate_array(&arr, 2, 2);
     *p2 = 2;
 
-    linc_array_delete(&arr, 0);
+    linc_array_delete(&arr, 0, 1);
     validate_array(&arr, 1, 2);
 
     TEST_ASSERT_EQUAL_INT(arr.data[0], 2);
@@ -134,7 +134,7 @@ TEST(array, delete_last_element) {
     validate_array(&arr, 2, 2);
     *p2 = 2;
 
-    linc_array_delete(&arr, 1);
+    linc_array_delete(&arr, 1, 1);
     validate_array(&arr, 1, 2);
 
     TEST_ASSERT_EQUAL_INT(arr.data[0], 1);
@@ -153,7 +153,7 @@ TEST(array, delete_middle_element) {
     validate_array(&arr, 3, 4);
     *p3 = 3;
 
-    linc_array_delete(&arr, 1);
+    linc_array_delete(&arr, 1, 1);
     validate_array(&arr, 2, 4);
 
     TEST_ASSERT_EQUAL_INT(arr.data[0], 1);
@@ -161,9 +161,53 @@ TEST(array, delete_middle_element) {
 }
 
 TEST(array, inserting_element) {
-    *linc_array_insert(&arr, 0) = 25;
+    *linc_array_insert(&arr, 0, 1) = 25;
     validate_array(&arr, 1, 2);
     TEST_ASSERT_EQUAL_INT(25, arr.data[0]);
+}
+
+TEST(array, inserting_multiple_elements) {
+    int nums[3] = { 1, 2, 3 };
+
+    memcpy(linc_array_insert(&arr, 0, 3), nums, sizeof(nums));
+    validate_array(&arr, 3, 3);
+    TEST_ASSERT_EQUAL_INT(1, arr.data[0]);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[1]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[2]);
+
+    memcpy(linc_array_insert(&arr, 0, 2), &nums[1], sizeof(int) * 2);
+    validate_array(&arr, 5, 6);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[0]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[1]);
+    TEST_ASSERT_EQUAL_INT(1, arr.data[2]);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[3]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[4]);
+}
+
+TEST(array, delete_multiple_elements) {
+    int nums[5] = { 1, 2, 3, 4, 5 };
+
+    memcpy(linc_array_insert(&arr, 0, 5), &nums, sizeof(nums));
+    validate_array(&arr, 5, 5);
+
+    linc_array_delete(&arr, 3, 2);
+    validate_array(&arr, 3, 5);
+    TEST_ASSERT_EQUAL_INT(1, arr.data[0]);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[1]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[2]);
+
+    linc_array_delete(&arr, 0, 1);
+    validate_array(&arr, 2, 5);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[0]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[1]);
+
+    linc_array_delete(&arr, 1, 0);
+    validate_array(&arr, 2, 5);
+    TEST_ASSERT_EQUAL_INT(2, arr.data[0]);
+    TEST_ASSERT_EQUAL_INT(3, arr.data[1]);
+
+    linc_array_delete(&arr, 0, 2);
+    validate_array(&arr, 0, 5);
 }
 
 TEST(array, using_a_custom_allocator) {
@@ -195,5 +239,7 @@ TEST_GROUP_RUNNER(array) {
     RUN_TEST_CASE(array, delete_last_element);
     RUN_TEST_CASE(array, delete_middle_element);
     RUN_TEST_CASE(array, inserting_element);
+    RUN_TEST_CASE(array, inserting_multiple_elements);
+    RUN_TEST_CASE(array, delete_multiple_elements);
     RUN_TEST_CASE(array, using_a_custom_allocator);
 }

@@ -67,51 +67,54 @@
 #define linc_array_push(_arr_arg) \
     LINC_ARRAY_PUSH_IMP((_arr_arg), linc_array_push_arr)
 
-#define LINC_ARRAY_DELETE_IMP(_arr_arg, _index_arg, _arr, _index) \
+#define LINC_ARRAY_DELETE_IMP(_arr_arg, _index_arg, _n_arg, _arr, _index, _n) \
     ({ \
         __auto_type _arr = _arr_arg; \
         size_t _index = _index_arg; \
-        assert(_index < _arr->size); \
+        size_t _n = _n_arg; \
+        assert(_index + _n <= _arr->size); \
         \
         memmove( \
-            &_arr->data[_index], &_arr->data[_index + 1], \
-            (_arr->size - _index - 1) * sizeof(*_arr->data) \
+            &_arr->data[_index], &_arr->data[_index + _n], \
+            (_arr->size - (_index + _n)) * sizeof(*_arr->data) \
         ); \
         \
-        --_arr->size; \
+        _arr->size -= _n; \
         (void)0; \
     })
 
-#define linc_array_delete(_arr_arg, _index_arg) \
+#define linc_array_delete(_arr_arg, _index_arg, _n_arg) \
     LINC_ARRAY_DELETE_IMP( \
-        (_arr_arg), (_index_arg), \
+        (_arr_arg), (_index_arg), (_n_arg), \
         linc_array_delete_arr, \
-        linc_array_delete_index \
+        linc_array_delete_index, \
+        linc_array_delete_n \
     )
 
-#define LINC_ARRAY_INSERT_IMP(_arr_arg, _index_arg, _arr, _index) \
+#define LINC_ARRAY_INSERT_IMP(_arr_arg, _index_arg, _n_arg, _arr, _index, _n) \
     ({ \
         __auto_type _arr = (_arr_arg); \
         size_t _index = (_index_arg); \
+        size_t _n = (_n_arg); \
         assert(_index <= _arr->size); \
         \
-        linc_array_reserve(_arr, \
-                _arr->size + 1); \
+        linc_array_reserve(_arr, _arr->size + _n); \
         \
         memmove( \
-            &_arr->data[_index + 1], &_arr->data[_index], \
+            &_arr->data[_index + _n], &_arr->data[_index], \
             (_arr->size - _index) * sizeof(*_arr->data) \
         ); \
         \
-        ++_arr->size; \
+        _arr->size += _n; \
         &(_arr->data[_index]); \
     })
 
-#define linc_array_insert(_arr_arg, _index_arg) \
+#define linc_array_insert(_arr_arg, _index_arg, _n_arg) \
     LINC_ARRAY_INSERT_IMP( \
-        (_arr_arg), (_index_arg), \
+        (_arr_arg), (_index_arg), (_n_arg), \
         linc_array_insert_arr, \
-        linc_array_insert_index \
+        linc_array_insert_index, \
+        linc_array_insert_n \
     )
 
 #endif
